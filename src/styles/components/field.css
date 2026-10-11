@@ -1,5 +1,6 @@
 .field {
   position: relative;
+    margin-bottom: 15px;
 
   &:has(.field__input:not(:placeholder-shown)) .field__label {
     color: var(--color-black);
@@ -46,4 +47,20 @@
       background-repeat: no-repeat;
     }
   }
+
+    &.is-invalid {
+        border-color: red;
+    }
+}
+
+.field__error {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    font-size: 12px;
+    color: red;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
 }
