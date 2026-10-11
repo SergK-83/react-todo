@@ -1,13 +1,9 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import useTasksLocalStorage from "./useTasksLocalStorage.js";
+import tasksAPI from "../api/api.js";
 
 const useTasks = () => {
-    const {savedTasks, saveTasks} = useTasksLocalStorage();
 
-    const [tasks, setTasks] = useState(savedTasks ?? [
-        {id: 'task-1', title: 'Купить молоко', isDone: false},
-        {id: 'task-2', title: 'Погладить кота', isDone: true},
-    ]);
+    const [tasks, setTasks] = useState([]);
 
     // useState — состояние компонента
     // Зачем нужен: хранить данные, изменение которых должно перерисовать компонент и обновить UI.
@@ -23,16 +19,22 @@ const useTasks = () => {
         const isConfirmed = confirm('Delete all?');
 
         if (isConfirmed) {
-            setTasks([]);
+            tasksAPI.deleteAll(tasks).then(() => setTasks([]))
         }
-    }, []);
+    }, [tasks]);
 
     const deleteTask = useCallback((taskId) => {
-        setTasks(tasks.filter((t) => t.id !== taskId));
+        tasksAPI.delete(taskId)
+            .then(() => {
+                setTasks(tasks.filter((t) => t.id !== taskId));
+            })
     }, [tasks]);
 
     const toggleTaskComplete = useCallback((taskId, isDone) => {
-        setTasks(tasks.map((t) => t.id === taskId ? {...t, isDone} : t))
+        tasksAPI.toggleComplete(taskId, isDone)
+            .then(() => {
+                setTasks(tasks.map((t) => t.id === taskId ? {...t, isDone} : t))
+            })
     }, [tasks]);
 
     /**
@@ -42,21 +44,20 @@ const useTasks = () => {
      */
     const addTask = useCallback((title) => {
         const newTask = {
-            id: crypto.randomUUID() ?? Date.now().toString(),
+            // Используем son-server, параметр id будет сгенерирован сервером
+            // id: crypto.randomUUID() ?? Date.now().toString(),
             title,
             isDone: false,
         }
 
-        // setTasks([...tasks, newTask]);
-        setTasks((prevTasks) => [...prevTasks, newTask]);
-        setNewTaskTitle('');
-        setSearchQuery('');
-        newTaskInputRef.current.focus();
+        tasksAPI.add(newTask)
+            .then((addedTask) => {
+                setTasks((prevTasks) => [...prevTasks, addedTask]);
+                setNewTaskTitle('');
+                setSearchQuery('');
+                newTaskInputRef.current.focus();
+            })
     }, []);
-
-    useEffect(() => {
-        saveTasks(tasks);
-    }, [tasks]);
 
     /**
      * Чтобы отловить момент загрузки страницы и последующего рендера компонента и его внутренностей
@@ -69,6 +70,8 @@ const useTasks = () => {
     useEffect(() => {
         // Сначала отрисуется компонент и только потом выполнится код ниже и newTaskInputRef точно не будет null
         newTaskInputRef.current.focus();
+
+        tasksAPI.getAll().then(setTasks)
     }, []);
 
     const renderCount = useRef(0);
