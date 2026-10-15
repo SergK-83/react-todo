@@ -1,5 +1,6 @@
 import {memo, useContext} from "react";
 import {TasksContext} from "../context/TasksContext.jsx";
+import RouterLink from "./RouterLink.jsx";
 
 const TodoItem = (props) => {
     const {
@@ -29,11 +30,15 @@ const TodoItem = (props) => {
                 onChange={({target}) => toggleTaskComplete(id, target.checked)}
             />
             <label
-                className="todo-item__label"
+                className="todo-item__label visually-hidden"
                 htmlFor={id}
             >
                 {title}
             </label>
+            {/* чтобы пользователям скрин ридер не зачитывался двойной зголовок из label и из ссылки */}
+            <RouterLink to={`/tasks/${id}`} aria-label="Task detail page">
+                {title}
+            </RouterLink>
             <button
                 className="todo-item__delete-button"
                 aria-label="Delete"
