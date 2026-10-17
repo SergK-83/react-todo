@@ -1,9 +1,34 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useReducer, useRef, useState} from "react";
 import tasksAPI from "@/shared/api/tasks";
 
-const useTasks = () => {
+const tasksReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_ALL': {
+            return Array.isArray(action.tasks) ? action.tasks : state;
+        }
+        case 'ADD': {
+            return [...state, action.task];
+        }
+        case 'TOGGLE_COMPLETE': {
+            const {id, isDone} = action;
 
-    const [tasks, setTasks] = useState([]);
+            return state.map((task) => task.id === id ? {...task, isDone} : task);
+        }
+        case 'DELETE': {
+            return state.filter((task) => task.id !== action.id);
+        }
+        case 'DELETE_ALL': {
+            return [];
+        }
+        default: {
+            return state;
+        }
+    }
+}
+
+const useTasks = () => {
+    // const [tasks, setTasks] = useState([]);
+    const [tasks, dispatch] = useReducer(tasksReducer, []);
 
     // useState — состояние компонента
     // Зачем нужен: хранить данные, изменение которых должно перерисовать компонент и обновить UI.
@@ -21,27 +46,46 @@ const useTasks = () => {
         const isConfirmed = confirm('Delete all?');
 
         if (isConfirmed) {
-            tasksAPI.deleteAll(tasks).then(() => setTasks([]))
+            // tasksAPI.deleteAll(tasks).then(() => setTasks([]))
+            tasksAPI.deleteAll(tasks).then(() => dispatch({type: 'DELETE_ALL'}))
         }
     }, [tasks]);
+
+    // const deleteTask = useCallback((taskId) => {
+    //     tasksAPI.delete(taskId)
+    //         .then(() => {
+    //             setDisappearingTaskId(taskId);
+    //             setTimeout(() => {
+    //                 setTasks(tasks.filter((t) => t.id !== taskId));
+    //                 setDisappearingTaskId(null);
+    //             }, 400);
+    //         })
+    // }, [tasks]);
 
     const deleteTask = useCallback((taskId) => {
         tasksAPI.delete(taskId)
             .then(() => {
                 setDisappearingTaskId(taskId);
                 setTimeout(() => {
-                    setTasks(tasks.filter((t) => t.id !== taskId));
+                    dispatch({type: 'DELETE', id: taskId})
                     setDisappearingTaskId(null);
                 }, 400);
             })
-    }, [tasks]);
+    }, []);
+
+    // const toggleTaskComplete = useCallback((taskId, isDone) => {
+    //     tasksAPI.toggleComplete(taskId, isDone)
+    //         .then(() => {
+    //             setTasks(tasks.map((t) => t.id === taskId ? {...t, isDone} : t))
+    //         })
+    // }, [tasks]);
 
     const toggleTaskComplete = useCallback((taskId, isDone) => {
         tasksAPI.toggleComplete(taskId, isDone)
             .then(() => {
-                setTasks(tasks.map((t) => t.id === taskId ? {...t, isDone} : t))
+                dispatch({type: 'TOGGLE_COMPLETE', id: taskId, isDone})
             })
-    }, [tasks]);
+    }, []);
 
     /**
      * prop Функция создает новый объект функцию при каждом рендере родителя
@@ -58,7 +102,8 @@ const useTasks = () => {
 
         tasksAPI.add(newTask)
             .then((addedTask) => {
-                setTasks((prevTasks) => [...prevTasks, addedTask]);
+                // setTasks((prevTasks) => [...prevTasks, addedTask]);
+                dispatch({type: 'ADD', task: addedTask})
                 setNewTaskTitle('');
                 setSearchQuery('');
                 newTaskInputRef.current.focus();
@@ -81,7 +126,8 @@ const useTasks = () => {
         // Сначала отрисуется компонент и только потом выполнится код ниже и newTaskInputRef точно не будет null
         newTaskInputRef.current.focus();
 
-        tasksAPI.getAll().then(setTasks)
+        // tasksAPI.getAll().then(setTasks);
+        tasksAPI.getAll().then((tasks) => dispatch({type: 'SET_ALL', tasks}));
     }, []);
 
     const renderCount = useRef(0);
