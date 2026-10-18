@@ -2,6 +2,7 @@ import {memo, useContext} from "react";
 import {TasksContext} from "@/entities/todo";
 import RouterLink from "@/shared/ui/RouterLink";
 import styles from "./TodoItem.module.scss";
+import {highlightCaseInsensitive} from "@/shared/utils/highlight.js";
 
 const TodoItem = (props) => {
     const {
@@ -18,7 +19,11 @@ const TodoItem = (props) => {
         toggleTaskComplete,
         disappearingTaskId,
         appearingTaskId,
+        searchQuery,
     } = useContext(TasksContext);
+
+    // $& — это специальная переменная в строке замены JavaScript, которая означает «все найденное совпадение целиком»
+    const highlightedTitle = highlightCaseInsensitive(title, searchQuery);
 
     return (
         <li
@@ -45,7 +50,8 @@ const TodoItem = (props) => {
             </label>
             {/* чтобы пользователям скрин ридер не зачитывался двойной зголовок из label и из ссылки */}
             <RouterLink to={`/tasks/${id}`} aria-label="Task detail page">
-                {title}
+                {/*{title}*/}
+                <span dangerouslySetInnerHTML={{__html: highlightedTitle}}></span>
             </RouterLink>
             <button
                 className={styles.deleteButton}
