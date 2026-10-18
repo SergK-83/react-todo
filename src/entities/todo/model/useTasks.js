@@ -33,7 +33,6 @@ const useTasks = () => {
     // useState — состояние компонента
     // Зачем нужен: хранить данные, изменение которых должно перерисовать компонент и обновить UI.
     // Ключевое свойство: вызов setCount запускает ре-рендер, и новое значение попадает в разметку.
-    const [newTaskTitle, setNewTaskTitle] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [disappearingTaskId, setDisappearingTaskId] = useState(null);
     const [appearingTaskId, setAppearingTaskId] = useState(null);
@@ -92,7 +91,7 @@ const useTasks = () => {
      * и для memo() в дочернем компоненте это выглядит так, будто пропсы изменились, т.к. в JS функции сравниваются по ссылке.
      * И для этого есть useCallback() - пока зависимости не изменились, функция остается той же самой ссылкой.
      */
-    const addTask = useCallback((title) => {
+    const addTask = useCallback((title, callbackAfterAdding) => {
         const newTask = {
             // Используем son-server, параметр id будет сгенерирован сервером
             // id: crypto.randomUUID() ?? Date.now().toString(),
@@ -104,7 +103,7 @@ const useTasks = () => {
             .then((addedTask) => {
                 // setTasks((prevTasks) => [...prevTasks, addedTask]);
                 dispatch({type: 'ADD', task: addedTask})
-                setNewTaskTitle('');
+                callbackAfterAdding()
                 setSearchQuery('');
                 newTaskInputRef.current.focus();
                 setAppearingTaskId(addedTask.id);
@@ -152,8 +151,6 @@ const useTasks = () => {
         deleteTask,
         deleteAllTasks,
         toggleTaskComplete,
-        newTaskTitle,
-        setNewTaskTitle,
         searchQuery,
         setSearchQuery,
         newTaskInputRef,
