@@ -49,7 +49,7 @@ const TodoItem = (props) => {
                 {title}
             </label>
             {/* чтобы пользователям скрин ридер не зачитывался двойной зголовок из label и из ссылки */}
-            <RouterLink to={`/tasks/${id}`} aria-label="Task detail page">
+            <RouterLink to={`tasks/${id}`} aria-label="Task detail page">
                 {/*{title}*/}
                 <span dangerouslySetInnerHTML={{__html: highlightedTitle}}></span>
             </RouterLink>
