@@ -11,4 +11,4 @@ Currently, two official plugins are available:
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
-Команда билда для прода VITE_STATIC_BACKEND=true npm run build
+Команда для создания под Windows файлов .env - Set-Content -LiteralPath 'C:\Users\User\projects\react-todo\.env.development' -Value 'VITE_STATIC_BACKEND=false' 
